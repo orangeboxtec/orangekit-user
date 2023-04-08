@@ -2,6 +2,8 @@ plugins {
     kotlin("jvm") version "1.7.22"
     kotlin("plugin.allopen") version "1.7.22"
     id("io.quarkus")
+    id("maven-publish")
+    id("org.kordamp.gradle.jandex") version "1.1.0"
 }
 
 group = "com.orangebox.kit.user"
@@ -20,7 +22,7 @@ val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 
 dependencies {
-    implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
+    implementation(platform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
     implementation("io.quarkus:quarkus-resteasy-reactive")
     implementation("io.quarkus:quarkus-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -52,4 +54,19 @@ allOpen {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.jvmTarget = JavaVersion.VERSION_17.toString()
     kotlinOptions.javaParameters = true
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+    repositories {
+        maven {
+            name = "orangebox"
+            url = uri("https://artifactory.startup-kit.net/artifactory/orangekit")
+            credentials(PasswordCredentials::class)
+        }
+    }
 }
