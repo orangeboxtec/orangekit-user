@@ -3,7 +3,8 @@ package com.orangebox.kit.user
 import com.orangebox.kit.core.address.AddressInfo
 import com.orangebox.kit.core.annotation.OKEntity
 import com.orangebox.kit.core.annotation.OKId
-import com.orangebox.kit.core.photo.GalleryItem
+import com.orangebox.kit.core.file.GalleryItem
+
 import com.orangebox.kit.core.user.GeneralUser
 import java.util.*
 import kotlin.collections.ArrayList
@@ -20,7 +21,8 @@ class User : GeneralUser {
     override var tokenFirebase: String? = null
     var document: String? = null
     override var phoneCountryCode: Int? = null
-    var name: String? = null
+    override var name: String? = null
+    override var lastName: String? = null
     var idObj: String? = null
     var nameObj: String? = null
     var code: String? = null
@@ -47,7 +49,7 @@ class User : GeneralUser {
     var status: String? = null
     var info: HashMap<String, Any>? = null
     var gallery: ArrayList<GalleryItem>? = null
-    var urlImage: String? = null
+    override var urlImage: String? = null
     var userTokens: ArrayList<UserToken>? = null
 
     constructor()

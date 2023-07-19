@@ -6,8 +6,8 @@ import com.orangebox.kit.authkey.UserAuthKey
 import com.orangebox.kit.core.bucket.BucketService
 import com.orangebox.kit.core.dto.ResponseList
 import com.orangebox.kit.core.exception.BusinessException
-import com.orangebox.kit.core.photo.FileUpload
-import com.orangebox.kit.core.photo.GalleryItem
+import com.orangebox.kit.core.file.FileUpload
+import com.orangebox.kit.core.file.GalleryItem
 import com.orangebox.kit.user.util.SecuredUser
 import com.orangebox.kit.user.util.UserBaseRestService
 import java.util.*
