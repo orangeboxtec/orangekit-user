@@ -40,6 +40,9 @@ class UserService {
     @ConfigProperty(name = "orangekit.core.projecturl", defaultValue = "http://localhost:4200")
     private lateinit var projectUrl: String
 
+    @ConfigProperty(name = "orangekit.core.projectname", defaultValue = "OrangeBox")
+    private lateinit var projectName: String
+
     @ConfigProperty(name = "orangekit.user.validatephone", defaultValue = "false")
     private lateinit var validatePhone: String
 
@@ -472,6 +475,7 @@ class UserService {
                             val params: MutableMap<String?, Any?> = HashMap()
                             params["user_name"] = user.name
                             params["confirmation_link"] = link
+                            params["project_name"] = projectName
                             return params
                         }
                     override val templateId: Int
