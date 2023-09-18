@@ -296,11 +296,14 @@ class UserService {
             throw BusinessException("invalid_user_password")
         } else {
             createToken(userDB)
-            for (i in userDB.userTokens!!.indices) {
-                if (userDB.userTokens!![i].tokenExpirationDate?.before(Date()) == true) {
-                    userDB.userTokens!!.remove(userDB.userTokens!![i])
+            var listTokens = ArrayList<UserToken>()
+            for (i in userDB.userTokens!!) {
+                var index = userDB.userTokens!!.indexOf(i)
+                if (userDB.userTokens!![index].tokenExpirationDate?.after(Date()) == true) {
+                    listTokens.add(i)
                 }
             }
+            userDB.userTokens = listTokens
             userDAO.update(userDB)
         }
         return userDB
