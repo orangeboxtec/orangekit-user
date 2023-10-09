@@ -41,10 +41,6 @@ class UserRestService : UserBaseRestService() {
     @Produces("application/json;charset=utf-8")
     @Path("/searchAdmin")
     fun searchAdmin(userSearch: UserSearch): ResponseList<UserCard> {
-        if (authorizationHeader.startsWith("Bearer ")) {
-            val token = authorizationHeader.substring("Bearer".length).trim { it <= ' ' }
-            userSearch.code = userBService.retrieveByToken(token)?.idObj
-        }
         return userService.searchAdmin(userSearch)
     }
 
