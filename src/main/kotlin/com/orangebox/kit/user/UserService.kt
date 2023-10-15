@@ -122,11 +122,7 @@ class UserService {
                 userDAO.update(userDB)
                 return userDB
             }
-            if (fgPhoneError) {
-                throw BusinessException("phone_exists")
-            } else {
-                throw BusinessException("email_exists")
-            }
+            throw BusinessException("email_exists")
         }
         user.creationDate = Date()
         user.id = null
@@ -190,14 +186,6 @@ class UserService {
     }
 
     protected fun validateUser(user: User) {
-        if (user.phoneNumber != null && user.phoneNumber != 0L) {
-            val userDB = userDAO.retrieve(userDAO.createBuilder()
-                .appendParamQuery("phoneNumber", user.phoneNumber!!)
-                .build())
-            if (userDB != null && userDB.id != user.id) {
-                throw BusinessException("phone_exists")
-            }
-        }
         if (user.email != null) {
             val userDB = userDAO.retrieve(userDAO.createBuilder()
                 .appendParamQuery("email", user.email!!)
