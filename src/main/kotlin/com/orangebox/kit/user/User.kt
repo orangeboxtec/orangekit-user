@@ -6,7 +6,9 @@ import com.orangebox.kit.core.annotation.OKId
 import com.orangebox.kit.core.file.GalleryItem
 
 import com.orangebox.kit.core.user.GeneralUser
+import java.time.LocalDate
 import java.util.*
+import javax.json.bind.annotation.JsonbDateFormat
 import kotlin.collections.ArrayList
 
 @OKEntity("user")
@@ -33,7 +35,8 @@ class User : GeneralUser {
     var password: String? = null
     var oldPassword: String? = null
     var salt: String? = null
-    var birthDate: Date? = null
+    @JsonbDateFormat("yyyy-MM-dd")
+    var birthDate: LocalDate? = null
     var birthDateStr: String? = null
     var gender: String? = null
     var language: String? = null
