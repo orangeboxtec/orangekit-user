@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.orangebox.kit.user"
-version = "1.0.6"
+version = "1.0.7"
 
 repositories {
     mavenCentral()

@@ -43,6 +43,9 @@ class UserService {
     @ConfigProperty(name = "orangekit.core.projectname", defaultValue = "OrangeBox")
     private lateinit var projectName: String
 
+    @ConfigProperty(name = "orangekit.core.projectlogo", defaultValue = "https://orangebox.technology/assets/img/logo_lado.png")
+    private lateinit var projectLogo: String
+
     @ConfigProperty(name = "orangekit.user.validatephone", defaultValue = "false")
     private lateinit var validatePhone: String
 
@@ -445,6 +448,7 @@ class UserService {
     }
 
     fun forgotPassword(email: String) {
+       // val logo = configurationService.loadByCode("PROJECT_LOGO_URL")?.value
         val user = retrieveByEmail(email) ?: throw BusinessException("user_not_found")
         val key: UserAuthKey = userAuthKeyService.createKey(user.id!!, UserAuthKeyTypeEnum.EMAIL)
         if (user.language == null) {
@@ -467,6 +471,7 @@ class UserService {
                             params["user_name"] = user.name
                             params["confirmation_link"] = link
                             params["project_name"] = projectName
+                            params["project_logo"] = projectLogo
                             return params
                         }
                     override val templateId: Int
