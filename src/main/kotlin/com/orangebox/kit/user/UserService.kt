@@ -55,6 +55,10 @@ class UserService {
     @ConfigProperty(name = "orangekit.user.email.confirmation.templateid", defaultValue = "ERROR")
     private lateinit var confirmationEmailTemplateId: String
 
+    init {
+        projectLogo = System.getenv("orangekit.core.projectlogo") ?: "https://orangebox.technology/assets/img/logo_lado.png"
+        projectName = System.getenv("orangekit.core.projectname") ?: "OrangeBox"
+    }
 
     fun retrieveByEmail(email: String): User? {
         return userDAO.retrieve(userDAO.createBuilder()
