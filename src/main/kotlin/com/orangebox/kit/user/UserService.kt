@@ -37,7 +37,7 @@ class UserService {
     @ConfigProperty(name = "orangekit.user.email.forgotpassword.templateid", defaultValue = "ERROR")
     private lateinit var forgotEmailTemplateId: String
 
-    @ConfigProperty(name = "orangekit.core.projecturl", defaultValue = "http://localhost:4200")
+    @ConfigProperty(name = "orangekit.core.projecturl", defaultValue = "http://localhost:3000")
     private lateinit var projectUrl: String
 
     @ConfigProperty(name = "orangekit.core.projectname", defaultValue = "OrangeBox")
@@ -336,7 +336,7 @@ class UserService {
         if (user.oldPassword != null) {
             userBase = login(user, user.oldPassword!!)
         } else {
-            userBase = userDAO.retrieve(User(user.id))
+            userBase = userDAO.retrieve(user.id!!)
         }
         if (userBase != null) {
             userBase.salt = SecUtils.salt
@@ -459,7 +459,7 @@ class UserService {
             user.language = "pt"
             update(user)
         }
-        val link = "$projectUrl/pages/email_forgot_password_userb?l=${user.language}&k=${key.key}&u=${user.id}&t=${key.type}"
+        val link = "$projectUrl/reset-password?l=${user.language}&k=${key.key}&u=${user.id}&t=${key.type}"
         if(forgotEmailTemplateId == "ERROR"){
             throw IllegalArgumentException("orangekit.user.email.forgotpassword.templateid must be provided in .env")
         }
