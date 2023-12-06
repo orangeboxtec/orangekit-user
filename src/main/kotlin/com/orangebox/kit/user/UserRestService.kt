@@ -163,7 +163,7 @@ class UserRestService : UserBaseRestService() {
         userService.updateFromClient(usMon)
     }
 
-    @SecuredUser
+    //@SecuredUser
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")

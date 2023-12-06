@@ -56,6 +56,7 @@ class UserService {
     private lateinit var confirmationEmailTemplateId: String
 
     init {
+        projectUrl = System.getenv("orangekit.core.projecturl") ?: "http://localhost:3000"
         projectLogo = System.getenv("orangekit.core.projectlogo") ?: "https://orangebox.technology/assets/img/logo_lado.png"
         projectName = System.getenv("orangekit.core.projectname") ?: "OrangeBox"
     }
@@ -341,7 +342,7 @@ class UserService {
         if (userBase != null) {
             userBase.salt = SecUtils.salt
             userBase.password = SecUtils.generateHash(userBase.salt, user.password!!)
-            userDAO.update(userBase)
+            update(userBase)
         }
         return userBase!!.password
     }
