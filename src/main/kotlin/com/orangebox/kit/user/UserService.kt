@@ -209,8 +209,9 @@ class UserService {
                                 override val data: Map<String?, Any?>
                                     get() {
                                         val params: MutableMap<String?, Any?> = HashMap()
+                                        val msg = "Olá, seu pedido #${statusEmail.number} foi atualizado e está na fase '${statusEmail.status}'"
                                         params["user_name"] = user.name
-                                        params["message"] = statusEmail.message
+                                        params["message"] = msg
                                         params["project_logo"] = projectLogo
                                         params["project_name"] = projectName
                                         return params
