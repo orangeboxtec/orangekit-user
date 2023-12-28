@@ -55,9 +55,6 @@ class UserService {
     @ConfigProperty(name = "orangekit.user.email.confirmation.templateid", defaultValue = "ERROR")
     private lateinit var confirmationEmailTemplateId: String
 
-    @ConfigProperty(name = "orangekit.user.email.status.templateid", defaultValue = "ERROR")
-    private lateinit var statusEmailTemplateId: String
-
     init {
         projectUrl = System.getenv("orangekit.core.projecturl") ?: "http://localhost:3000"
         projectLogo = System.getenv("orangekit.core.projectlogo")
@@ -191,33 +188,6 @@ class UserService {
                                     }
                                 override val templateId: Int
                                     get() = welcomeEmailTemplateId.toInt()
-                            })
-                            .build()
-            )
-        }
-    }
-
-    fun sendStatusEmail(statusEmail: StatusEmail) {
-        val user = retrieveByEmail(statusEmail.email!!) ?: throw BusinessException("user_not_found")
-        if (statusEmailTemplateId != "ERROR") {
-            notificationService.sendNotification(
-                    NotificationBuilder()
-                            .setTo(user)
-                            .setTypeSending(TypeSendingNotificationEnum.EMAIL)
-                            .setFgAlertOnly(true)
-                            .setEmailDataTemplate(object : EmailDataTemplate {
-                                override val data: Map<String?, Any?>
-                                    get() {
-                                        val params: MutableMap<String?, Any?> = HashMap()
-                                        val msg = "Olá, seu pedido #${statusEmail.number} foi atualizado e está na fase '${statusEmail.status}'"
-                                        params["user_name"] = user.name
-                                        params["message"] = msg
-                                        params["project_logo"] = projectLogo
-                                        params["project_name"] = projectName
-                                        return params
-                                    }
-                                override val templateId: Int
-                                    get() = statusEmailTemplateId.toInt()
                             })
                             .build()
             )

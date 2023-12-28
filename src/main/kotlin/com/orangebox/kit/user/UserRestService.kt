@@ -272,13 +272,6 @@ class UserRestService : UserBaseRestService() {
     }
 
     @POST
-    @Path("/sendStatusEmail")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    fun sendStatusEmail(statusEmail: StatusEmail) {
-        userService.sendStatusEmail(statusEmail)
-    }
-
-    @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
     @Path("/validateKey")
