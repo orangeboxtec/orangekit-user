@@ -55,6 +55,12 @@ class UserService {
     @ConfigProperty(name = "orangekit.user.email.confirmation.templateid", defaultValue = "ERROR")
     private lateinit var confirmationEmailTemplateId: String
 
+    @ConfigProperty(name = "orangekit.user.email.resetPasswordTemplateId.templateid", defaultValue = "ERROR")
+    private lateinit var resetPasswordTemplateId: String
+
+    @ConfigProperty(name = "orangekit.user.email.forgotPasswordTemplateId.templateid", defaultValue = "ERROR")
+    private lateinit var forgotPasswordTemplateId: String
+
     init {
         projectUrl = System.getenv("orangekit.core.projecturl") ?: "http://localhost:3000"
         projectLogo = System.getenv("orangekit.core.projectlogo")
@@ -817,6 +823,177 @@ class UserService {
         user.status = status
         userDAO.update(user)
     }
+
+    fun newUserSendEmailResetPassword(user: User): User {
+        if (user.name == null) {
+            throw BusinessException("name_required")
+        }
+        if (user.email == null) {
+            throw BusinessException("email_required")
+        }
+        if (user.password == null && user.idFacebook == null && user.idGoogle == null && user.idApple == null && confirmationEmailTemplateId == "ERROR") {
+            throw BusinessException("password_required")
+        }
+        var userDB: User? = null
+        var fgPhoneError = false
+        if (user.email != null && user.email != "") {
+            userDB = retrieveByEmail(user.email!!)
+        }
+        if (userDB == null && user.phoneNumber != null && user.phoneNumber != 0L) {
+            userDB = retrieveByPhone(user.phoneNumber!!)
+            fgPhoneError = true
+        }
+        if (userDB != null) {
+            if (user.idFacebook != null && user.idFacebook != "" && (userDB.idFacebook == null || userDB.idFacebook == "")) {
+                userDB.idFacebook = user.idFacebook
+                userDAO.update(userDB)
+                return userDB
+            }
+            if (user.idGoogle != null && user.idGoogle != "" && (userDB.idGoogle == null || userDB.idGoogle == "")) {
+                userDB.idGoogle = user.idGoogle
+                userDAO.update(userDB)
+                return userDB
+            }
+            if (user.idApple != null && user.idApple != "" && (userDB.idApple == null || userDB.idApple == "")) {
+                userDB.idApple = user.idApple
+                userDAO.update(userDB)
+                return userDB
+            }
+            throw BusinessException("email_exists")
+        }
+        user.creationDate = Date()
+        user.id = null
+        if (user.password != null) {
+            user.salt = SecUtils.salt
+            user.password = SecUtils.generateHash(user.salt, user.password!!)
+        }
+        if (user.status == null) {
+            user.status = "ACTIVE"
+        }
+        if (user.info != null && user.info!!.containsKey("idUserAnonymous") && user.type == "anonymous") {
+            user.type = "user"
+            user.id = user.info!!["idUserAnonymous"] as String?
+            BusinessUtils(userDAO).basicSave(user)
+        } else {
+            userDAO.insert(user)
+        }
+        if (user.phone != null && validatePhone.toBoolean()) {
+            confirmUserSMS(user.id!!)
+        }
+        if(user.idGoogle == null && user.idFacebook == null && user.idApple == null){
+            confirmEmailLinkResetPassword(user.email!!)
+        }
+        createToken(user)
+        return user
+    }
+
+    fun confirmEmailLinkResetPassword(email: String) {
+        // val logo = configurationService.loadByCode("PROJECT_LOGO_URL")?.value
+        val user = retrieveByEmail(email) ?: throw BusinessException("user_not_found")
+        val key: UserAuthKey = userAuthKeyService.createKey(user.id!!, UserAuthKeyTypeEnum.EMAIL)
+        if (user.language == null) {
+            user.language = "pt"
+            update(user)
+        }
+        val link = "$projectUrl/pages/reset-password?l=${user.language}&k=${key.key}&u=${user.id}&t=${key.type}"
+        if (resetPasswordTemplateId == "ERROR") {
+            throw IllegalArgumentException("orangekit.user.email.resetPasswordTemplateId.templateid must be provided in .env")
+        }
+        notificationService.sendNotification(
+            NotificationBuilder()
+                .setTo(user)
+                .setTypeSending(TypeSendingNotificationEnum.EMAIL)
+                .setFgAlertOnly(true)
+                .setEmailDataTemplate(object : EmailDataTemplate {
+                    override val data: Map<String?, Any?>
+                        get() {
+                            val params: MutableMap<String?, Any?> = HashMap()
+                            params["user_name"] = user.name
+                            params["confirmation_link"] = link
+                            params["project_name"] = projectName
+                            params["project_logo"] = projectLogo
+                            return params
+                        }
+                    override val templateId: Int
+                        get() = resetPasswordTemplateId.toInt()
+                })
+                .build()
+        )
+    }
+
+    fun forgotPasswordVerifySocialMedia(email: String){
+        val user = retrieveByEmail(email) ?: throw BusinessException("user_not_found")
+        if(user.idGoogle != null || user.idApple != null || user.idFacebook != null){
+            throw BusinessException("user_login_with_social_media")
+        }
+
+        val key: UserAuthKey = userAuthKeyService.createKey(user.id!!, UserAuthKeyTypeEnum.EMAIL)
+        if (user.language == null) {
+            user.language = "pt"
+            update(user)
+        }
+        val link = "$projectUrl/pages/reset-password?l=${user.language}&k=${key.key}&u=${user.id}&t=${key.type}"
+        if (forgotPasswordTemplateId == "ERROR") {
+            throw IllegalArgumentException("orangekit.user.email.resetPasswordTemplateId.templateid must be provided in .env")
+        }
+        notificationService.sendNotification(
+            NotificationBuilder()
+                .setTo(user)
+                .setTypeSending(TypeSendingNotificationEnum.EMAIL)
+                .setFgAlertOnly(true)
+                .setEmailDataTemplate(object : EmailDataTemplate {
+                    override val data: Map<String?, Any?>
+                        get() {
+                            val params: MutableMap<String?, Any?> = HashMap()
+                            params["user_name"] = user.name
+                            params["confirmation_link"] = link
+                            params["project_name"] = projectName
+                            params["project_logo"] = projectLogo
+                            return params
+                        }
+                    override val templateId: Int
+                        get() = forgotPasswordTemplateId.toInt()
+                })
+                .build()
+        )
+    }
+
+    fun validateKeyAngular(key: UserAuthKey): User? {
+        val validate: Boolean = userAuthKeyService.validateKey(key)
+        if (validate) {
+            val user = userDAO.retrieve(User(key.idUser))!!
+            user.userConfirmed = true
+            if (key.type!! == UserAuthKeyTypeEnum.EMAIL) {
+                user.emailConfirmed = true
+            } else {
+                user.phoneConfirmed = true
+            }
+            generateSession(user)
+            userDAO.update(user)
+            return user
+        }
+        throw BusinessException("invalid_key")
+    }
+
+    fun generateSession(user: User){
+        user.token = UUID.randomUUID().toString()
+        val expCal = Calendar.getInstance()
+        expCal.add(Calendar.HOUR, 12)
+        user.tokenExpirationDate = expCal.time
+        userDAO.update(user)
+
+    }
+
+    fun updatePasswordForgot(user: User) {
+        val userBase = userDAO.retrieve(user.id!!)
+        if (userBase != null) {
+            val nullPasword = userBase.password == null
+            userBase.salt = SecUtils.salt
+            userBase.password = SecUtils.generateHash(userBase.salt, user.password!!)
+            userDAO.update(userBase)
+        }
+    }
+
 
     companion object {
         private const val TOTAL_PAGE = 10
