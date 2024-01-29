@@ -844,6 +844,7 @@ class UserService {
             fgPhoneError = true
         }
         if (userDB != null) {
+
             if (user.idFacebook != null && user.idFacebook != "" && (userDB.idFacebook == null || userDB.idFacebook == "")) {
                 userDB.idFacebook = user.idFacebook
                 userDAO.update(userDB)
@@ -858,6 +859,9 @@ class UserService {
                 userDB.idApple = user.idApple
                 userDAO.update(userDB)
                 return userDB
+            }
+            if(userDB.idGoogle != null){
+                throw BusinessException("email_exists_google_login")
             }
             throw BusinessException("email_exists")
         }
