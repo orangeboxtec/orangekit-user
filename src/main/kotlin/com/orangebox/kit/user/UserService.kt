@@ -37,11 +37,14 @@ class UserService {
     @ConfigProperty(name = "orangekit.user.email.forgotpassword.templateid", defaultValue = "ERROR")
     private lateinit var forgotEmailTemplateId: String
 
-    @ConfigProperty(name = "orangekit.core.projecturl", defaultValue = "http://localhost:4200")
+    @ConfigProperty(name = "orangekit.core.projecturl", defaultValue = "http://localhost:3000")
     private lateinit var projectUrl: String
 
-    @ConfigProperty(name = "orangekit.core.projectname", defaultValue = "OrangeBox")
+    @ConfigProperty(name = "orangekit.core.projectname", defaultValue = "Vcomm")
     private lateinit var projectName: String
+
+    @ConfigProperty(name = "orangekit.core.projectlogo", defaultValue = "https://02m6l.mjt.lu/tplimg/02m6l/b/1zy63/x24wj.png")
+    private lateinit var projectLogo: String
 
     @ConfigProperty(name = "orangekit.user.validatephone", defaultValue = "false")
     private lateinit var validatePhone: String
@@ -52,17 +55,29 @@ class UserService {
     @ConfigProperty(name = "orangekit.user.email.confirmation.templateid", defaultValue = "ERROR")
     private lateinit var confirmationEmailTemplateId: String
 
+    @ConfigProperty(name = "orangekit.user.email.resetPasswordTemplateId.templateid", defaultValue = "ERROR")
+    private lateinit var resetPasswordTemplateId: String
+
+    @ConfigProperty(name = "orangekit.user.email.forgotPasswordTemplateId.templateid", defaultValue = "ERROR")
+    private lateinit var forgotPasswordTemplateId: String
+
+    init {
+        projectUrl = System.getenv("orangekit.core.projecturl") ?: "http://localhost:3000"
+        projectLogo = System.getenv("orangekit.core.projectlogo")
+                ?: "https://orangebox.technology/assets/img/logo_lado.png"
+        projectName = System.getenv("orangekit.core.projectname") ?: "OrangeBox"
+    }
 
     fun retrieveByEmail(email: String): User? {
         return userDAO.retrieve(userDAO.createBuilder()
-            .appendParamQuery("email", email)
-            .build())
+                .appendParamQuery("email", email)
+                .build())
     }
 
     fun retrieveByPhone(phoneNumber: Long): User? {
         return userDAO.retrieve(userDAO.createBuilder()
-            .appendParamQuery("phoneNumber", phoneNumber)
-            .build())
+                .appendParamQuery("phoneNumber", phoneNumber)
+                .build())
     }
 
     fun saveByPhone(user: User): User {
@@ -166,21 +181,21 @@ class UserService {
     fun sendWelcomeEmail(user: User) {
         if (welcomeEmailTemplateId != "ERROR") {
             notificationService.sendNotification(
-                NotificationBuilder()
-                    .setTo(user)
-                    .setTypeSending(TypeSendingNotificationEnum.EMAIL)
-                    .setFgAlertOnly(true)
-                    .setEmailDataTemplate(object : EmailDataTemplate {
-                        override val data: Map<String?, Any?>
-                            get() {
-                                val params: MutableMap<String?, Any?> = HashMap()
-                                params["user_name"] = user.name
-                                return params
-                            }
-                        override val templateId: Int
-                            get() = welcomeEmailTemplateId.toInt()
-                    })
-                    .build()
+                    NotificationBuilder()
+                            .setTo(user)
+                            .setTypeSending(TypeSendingNotificationEnum.EMAIL)
+                            .setFgAlertOnly(true)
+                            .setEmailDataTemplate(object : EmailDataTemplate {
+                                override val data: Map<String?, Any?>
+                                    get() {
+                                        val params: MutableMap<String?, Any?> = HashMap()
+                                        params["user_name"] = user.name
+                                        return params
+                                    }
+                                override val templateId: Int
+                                    get() = welcomeEmailTemplateId.toInt()
+                            })
+                            .build()
             )
         }
     }
@@ -188,8 +203,8 @@ class UserService {
     protected fun validateUser(user: User) {
         if (user.email != null) {
             val userDB = userDAO.retrieve(userDAO.createBuilder()
-                .appendParamQuery("email", user.email!!)
-                .build())
+                    .appendParamQuery("email", user.email!!)
+                    .build())
             if (userDB != null && userDB.id != user.id) {
                 throw BusinessException("email_exists")
             }
@@ -329,20 +344,20 @@ class UserService {
         if (user.oldPassword != null) {
             userBase = login(user, user.oldPassword!!)
         } else {
-            userBase = userDAO.retrieve(User(user.id))
+            userBase = userDAO.retrieve(user.id!!)
         }
         if (userBase != null) {
             userBase.salt = SecUtils.salt
             userBase.password = SecUtils.generateHash(userBase.salt, user.password!!)
-            userDAO.update(userBase)
+            update(userBase)
         }
         return userBase!!.password
     }
 
     fun listUserIn(userIds: List<String>): List<User>? {
         return userDAO.search(userDAO.createBuilder()
-            .appendParamQuery("id", userIds, OperationEnum.IN)
-            .build())
+                .appendParamQuery("id", userIds, OperationEnum.IN)
+                .build())
     }
 
     fun generateCard(idUser: String): UserCard? {
@@ -372,7 +387,7 @@ class UserService {
 
     fun updateStartInfo(userStartInfo: UserStartInfo) {
         val user = userDAO.retrieve(User(userStartInfo.idUser))
-        if(user != null){
+        if (user != null) {
             user.lastLogin = Date()
             if (userStartInfo.tokenFirebase != null) {
                 user.tokenFirebase = userStartInfo.tokenFirebase
@@ -406,19 +421,19 @@ class UserService {
         val key = userAuthKeyService.createKey(idUser, UserAuthKeyTypeEnum.SMS)
         val message = validatePhoneMessage + key.key
         notificationService.sendNotification(
-            NotificationBuilder()
-                .setTo(user)
-                .setTypeSending(TypeSendingNotificationEnum.SMS)
-                .setMessage(message)
-                .setFgAlertOnly(true)
-                .build()
+                NotificationBuilder()
+                        .setTo(user)
+                        .setTypeSending(TypeSendingNotificationEnum.SMS)
+                        .setMessage(message)
+                        .setFgAlertOnly(true)
+                        .build()
         )
     }
 
     fun confirmUserEmail(idUser: String) {
-        if(confirmationEmailTemplateId != "ERROR"){
+        if (confirmationEmailTemplateId != "ERROR") {
             val user = retrieve(idUser)
-            if(user != null){
+            if (user != null) {
                 val key = userAuthKeyService.createKey(idUser, UserAuthKeyTypeEnum.EMAIL)
                 val language = if (user.language == null) "" else "_" + user.language!!.uppercase(Locale.getDefault())
                 val link = "$projectUrl/pages/confirm_user?l=$language&k=${key.key!!}&u=${user.id!!}&t=${key.type}"
@@ -431,7 +446,7 @@ class UserService {
         val validate = userAuthKeyService.validateKey(key)
         if (validate) {
             val user = userDAO.retrieve(User(key.idUser))
-            if(user != null){
+            if (user != null) {
                 user.userConfirmed = true
                 if (key.type == UserAuthKeyTypeEnum.EMAIL) {
                     user.emailConfirmed = true
@@ -445,66 +460,68 @@ class UserService {
     }
 
     fun forgotPassword(email: String) {
+        // val logo = configurationService.loadByCode("PROJECT_LOGO_URL")?.value
         val user = retrieveByEmail(email) ?: throw BusinessException("user_not_found")
         val key: UserAuthKey = userAuthKeyService.createKey(user.id!!, UserAuthKeyTypeEnum.EMAIL)
         if (user.language == null) {
             user.language = "pt"
             update(user)
         }
-        val link = "$projectUrl/pages/email_forgot_password_userb?l=${user.language}&k=${key.key}&u=${user.id}&t=${key.type}"
-        if(forgotEmailTemplateId == "ERROR"){
+        val link = "$projectUrl/reset-password?l=${user.language}&k=${key.key}&u=${user.id}&t=${key.type}"
+        if (forgotEmailTemplateId == "ERROR") {
             throw IllegalArgumentException("orangekit.user.email.forgotpassword.templateid must be provided in .env")
         }
         notificationService.sendNotification(
-            NotificationBuilder()
-                .setTo(user)
-                .setTypeSending(TypeSendingNotificationEnum.EMAIL)
-                .setFgAlertOnly(true)
-                .setEmailDataTemplate(object : EmailDataTemplate {
-                    override val data: Map<String?, Any?>
-                        get() {
-                            val params: MutableMap<String?, Any?> = HashMap()
-                            params["user_name"] = user.name
-                            params["confirmation_link"] = link
-                            params["project_name"] = projectName
-                            return params
-                        }
-                    override val templateId: Int
-                        get() = forgotEmailTemplateId.toInt()
-                })
-                .build()
+                NotificationBuilder()
+                        .setTo(user)
+                        .setTypeSending(TypeSendingNotificationEnum.EMAIL)
+                        .setFgAlertOnly(true)
+                        .setEmailDataTemplate(object : EmailDataTemplate {
+                            override val data: Map<String?, Any?>
+                                get() {
+                                    val params: MutableMap<String?, Any?> = HashMap()
+                                    params["user_name"] = user.name
+                                    params["confirmation_link"] = link
+                                    params["project_name"] = projectName
+                                    params["project_logo"] = projectLogo
+                                    return params
+                                }
+                            override val templateId: Int
+                                get() = forgotEmailTemplateId.toInt()
+                        })
+                        .build()
         )
     }
 
     protected fun sendNotification(user: User, title: String?, emailTemplateId: Int, link: String?, msg: String?) {
         notificationService.sendNotification(
-            NotificationBuilder()
-                .setTo(user)
-                .setTypeSending(TypeSendingNotificationEnum.EMAIL)
-                .setTitle(title)
-                .setFgAlertOnly(true)
-                .setEmailDataTemplate(object : EmailDataTemplate {
-                    override val templateId: Int
-                        get() = emailTemplateId
-                    override val data: Map<String?, Any?>?
-                        get() {
-                            val params: MutableMap<String?, Any?> = HashMap()
-                            params["user_name"] = user.name
-                            params["confirmation_link"] = link
-                            params["msg"] = msg
-                            return params
-                        }
-                })
-                .build()
+                NotificationBuilder()
+                        .setTo(user)
+                        .setTypeSending(TypeSendingNotificationEnum.EMAIL)
+                        .setTitle(title)
+                        .setFgAlertOnly(true)
+                        .setEmailDataTemplate(object : EmailDataTemplate {
+                            override val templateId: Int
+                                get() = emailTemplateId
+                            override val data: Map<String?, Any?>?
+                                get() {
+                                    val params: MutableMap<String?, Any?> = HashMap()
+                                    params["user_name"] = user.name
+                                    params["confirmation_link"] = link
+                                    params["msg"] = msg
+                                    return params
+                                }
+                        })
+                        .build()
         )
     }
 
     fun searchByName(name: String): List<UserCard>? {
         val listUsers = userDAO.search(
-            userDAO.createBuilder()
-                .appendParamQuery("name", name, OperationEnum.LIKE)
-                .setMaxResults(10)
-                .build()
+                userDAO.createBuilder()
+                        .appendParamQuery("name", name, OperationEnum.LIKE)
+                        .setMaxResults(10)
+                        .build()
         )
         if (listUsers != null) {
             val list: List<UserCard>
@@ -542,17 +559,17 @@ class UserService {
     fun checkToken(token: String): Boolean {
         val user = retrieveByToken(token) ?: return false
         val userToken = user.userTokens!!.stream()
-            .filter { p: UserToken -> p.token == token }
-            .findFirst()
-            .orElse(null)
+                .filter { p: UserToken -> p.token == token }
+                .findFirst()
+                .orElse(null)
         return userToken != null && !user.tokenExpirationDate!!.before(Date())
     }
 
     fun retrieveByToken(token: String): User? {
         return userDAO.retrieve(
-            userDAO.createBuilder()
-                .appendParamQuery("userTokens.token", token)
-                .build()
+                userDAO.createBuilder()
+                        .appendParamQuery("userTokens.token", token)
+                        .build()
         )
     }
 
@@ -573,30 +590,30 @@ class UserService {
 
 
     fun customersByRadius(
-        latitude: Double,
-        longitude: Double,
-        distanceKM: Int
+            latitude: Double,
+            longitude: Double,
+            distanceKM: Int
     ): List<User>? {
         return userDAO.search(
-            userDAO.createBuilder()
-                .appendParamQuery(
-                    "lastAddress", arrayOf(latitude, longitude, distanceKM.toDouble()),
-                    OperationEnum.GEO
-                )
-                .build()
+                userDAO.createBuilder()
+                        .appendParamQuery(
+                                "lastAddress", arrayOf(latitude, longitude, distanceKM.toDouble()),
+                                OperationEnum.GEO
+                        )
+                        .build()
         )
     }
 
     fun listByFieldInfo(
-        field: String,
-        value: String
+            field: String,
+            value: String
     ): List<User>? {
         return userDAO.listByFieldInfo(field, value)
     }
 
     fun changeStatus(idUser: String) {
         val user = retrieve(idUser)
-        if(user != null){
+        if (user != null) {
             if (user.status == "ACTIVE") {
                 user.status = "BLOCKED"
             } else {
@@ -674,9 +691,9 @@ class UserService {
             }
             if (userSearch.queryString != null && userSearch.queryString!!.isNotEmpty()) {
                 sb.appendParamQuery(
-                    "name|nameObj|addressInfo.city",
-                    userSearch.queryString!!,
-                    OperationEnum.OR_FIELDS_LIKE
+                        "name|nameObj|addressInfo.city",
+                        userSearch.queryString!!,
+                        OperationEnum.OR_FIELDS_LIKE
                 )
             }
             if (userSearch.creationDate != null) {
@@ -763,7 +780,7 @@ class UserService {
 
     fun setUserImage(search: UserSearch) {
         val user = retrieve(search.idUser!!)
-        if(user != null){
+        if (user != null) {
             for (i in user.gallery!!.indices) {
                 if (search.idImg == user.gallery!![i].id) {
                     user.urlImage = user.gallery!![i].urlFile
@@ -775,7 +792,7 @@ class UserService {
 
     fun removeGallery(userSearch: UserSearch) {
         val userList = userDAO.listAll()
-        if(userList != null){
+        if (userList != null) {
             for (i in userList.indices) {
                 if (userSearch.idUser == userList[i].id) {
                     for (j in userList[i].gallery!!.indices) {
@@ -806,6 +823,181 @@ class UserService {
         user.status = status
         userDAO.update(user)
     }
+
+    fun newUserSendEmailResetPassword(user: User): User {
+        if (user.name == null) {
+            throw BusinessException("name_required")
+        }
+        if (user.email == null) {
+            throw BusinessException("email_required")
+        }
+        if (user.password == null && user.idFacebook == null && user.idGoogle == null && user.idApple == null && confirmationEmailTemplateId == "ERROR") {
+            throw BusinessException("password_required")
+        }
+        var userDB: User? = null
+        var fgPhoneError = false
+        if (user.email != null && user.email != "") {
+            userDB = retrieveByEmail(user.email!!)
+        }
+        if (userDB == null && user.phoneNumber != null && user.phoneNumber != 0L) {
+            userDB = retrieveByPhone(user.phoneNumber!!)
+            fgPhoneError = true
+        }
+        if (userDB != null) {
+
+            if (user.idFacebook != null && user.idFacebook != "" && (userDB.idFacebook == null || userDB.idFacebook == "")) {
+                userDB.idFacebook = user.idFacebook
+                userDAO.update(userDB)
+                return userDB
+            }
+            if (user.idGoogle != null && user.idGoogle != "" && (userDB.idGoogle == null || userDB.idGoogle == "")) {
+                userDB.idGoogle = user.idGoogle
+                userDAO.update(userDB)
+                return userDB
+            }
+            if (user.idApple != null && user.idApple != "" && (userDB.idApple == null || userDB.idApple == "")) {
+                userDB.idApple = user.idApple
+                userDAO.update(userDB)
+                return userDB
+            }
+            if(userDB.idGoogle != null){
+                throw BusinessException("email_exists_google_login")
+            }
+            throw BusinessException("email_exists")
+        }
+        user.creationDate = Date()
+        user.id = null
+        if (user.password != null) {
+            user.salt = SecUtils.salt
+            user.password = SecUtils.generateHash(user.salt, user.password!!)
+        }
+        if (user.status == null) {
+            user.status = "ACTIVE"
+        }
+        if (user.info != null && user.info!!.containsKey("idUserAnonymous") && user.type == "anonymous") {
+            user.type = "user"
+            user.id = user.info!!["idUserAnonymous"] as String?
+            BusinessUtils(userDAO).basicSave(user)
+        } else {
+            userDAO.insert(user)
+        }
+        if (user.phone != null && validatePhone.toBoolean()) {
+            confirmUserSMS(user.id!!)
+        }
+        if(user.idGoogle == null && user.idFacebook == null && user.idApple == null){
+            confirmEmailLinkResetPassword(user.email!!)
+        }
+        createToken(user)
+        return user
+    }
+
+    fun confirmEmailLinkResetPassword(email: String) {
+        // val logo = configurationService.loadByCode("PROJECT_LOGO_URL")?.value
+        val user = retrieveByEmail(email) ?: throw BusinessException("user_not_found")
+        val key: UserAuthKey = userAuthKeyService.createKey(user.id!!, UserAuthKeyTypeEnum.EMAIL)
+        if (user.language == null) {
+            user.language = "pt"
+            update(user)
+        }
+        val link = "$projectUrl/pages/reset-password?l=${user.language}&k=${key.key}&u=${user.id}&t=${key.type}"
+        if (resetPasswordTemplateId == "ERROR") {
+            throw IllegalArgumentException("orangekit.user.email.resetPasswordTemplateId.templateid must be provided in .env")
+        }
+        notificationService.sendNotification(
+            NotificationBuilder()
+                .setTo(user)
+                .setTypeSending(TypeSendingNotificationEnum.EMAIL)
+                .setFgAlertOnly(true)
+                .setEmailDataTemplate(object : EmailDataTemplate {
+                    override val data: Map<String?, Any?>
+                        get() {
+                            val params: MutableMap<String?, Any?> = HashMap()
+                            params["user_name"] = user.name
+                            params["confirmation_link"] = link
+                            params["project_name"] = projectName
+                            params["project_logo"] = projectLogo
+                            return params
+                        }
+                    override val templateId: Int
+                        get() = resetPasswordTemplateId.toInt()
+                })
+                .build()
+        )
+    }
+
+    fun forgotPasswordVerifySocialMedia(email: String){
+        val user = retrieveByEmail(email) ?: throw BusinessException("user_not_found")
+        if(user.idGoogle != null || user.idApple != null || user.idFacebook != null){
+            throw BusinessException("user_login_with_social_media")
+        }
+
+        val key: UserAuthKey = userAuthKeyService.createKey(user.id!!, UserAuthKeyTypeEnum.EMAIL)
+        if (user.language == null) {
+            user.language = "pt"
+            update(user)
+        }
+        val link = "$projectUrl/pages/reset-password?l=${user.language}&k=${key.key}&u=${user.id}&t=${key.type}"
+        if (forgotPasswordTemplateId == "ERROR") {
+            throw IllegalArgumentException("orangekit.user.email.resetPasswordTemplateId.templateid must be provided in .env")
+        }
+        notificationService.sendNotification(
+            NotificationBuilder()
+                .setTo(user)
+                .setTypeSending(TypeSendingNotificationEnum.EMAIL)
+                .setFgAlertOnly(true)
+                .setEmailDataTemplate(object : EmailDataTemplate {
+                    override val data: Map<String?, Any?>
+                        get() {
+                            val params: MutableMap<String?, Any?> = HashMap()
+                            params["user_name"] = user.name
+                            params["confirmation_link"] = link
+                            params["project_name"] = projectName
+                            params["project_logo"] = projectLogo
+                            return params
+                        }
+                    override val templateId: Int
+                        get() = forgotPasswordTemplateId.toInt()
+                })
+                .build()
+        )
+    }
+
+    fun validateKeyAngular(key: UserAuthKey): User? {
+        val validate: Boolean = userAuthKeyService.validateKey(key)
+        if (validate) {
+            val user = userDAO.retrieve(User(key.idUser))!!
+            user.userConfirmed = true
+            if (key.type!! == UserAuthKeyTypeEnum.EMAIL) {
+                user.emailConfirmed = true
+            } else {
+                user.phoneConfirmed = true
+            }
+            generateSession(user)
+            userDAO.update(user)
+            return user
+        }
+        throw BusinessException("invalid_key")
+    }
+
+    fun generateSession(user: User){
+        user.token = UUID.randomUUID().toString()
+        val expCal = Calendar.getInstance()
+        expCal.add(Calendar.HOUR, 12)
+        user.tokenExpirationDate = expCal.time
+        userDAO.update(user)
+
+    }
+
+    fun updatePasswordForgot(user: User) {
+        val userBase = userDAO.retrieve(user.id!!)
+        if (userBase != null) {
+            val nullPasword = userBase.password == null
+            userBase.salt = SecUtils.salt
+            userBase.password = SecUtils.generateHash(userBase.salt, user.password!!)
+            userDAO.update(userBase)
+        }
+    }
+
 
     companion object {
         private const val TOTAL_PAGE = 10

@@ -163,7 +163,7 @@ class UserRestService : UserBaseRestService() {
         userService.updateFromClient(usMon)
     }
 
-    @SecuredUser
+    //@SecuredUser
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
@@ -342,4 +342,37 @@ class UserRestService : UserBaseRestService() {
     fun setStatus(@PathParam("id") id: String, @PathParam("status") status: String) {
         userService!!.setStatus(id, status)
     }
+
+    @PUT
+    @Path("/resetPassword/{email}")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    fun resetPassword(@PathParam("email") email: String) {
+        userService.forgotPasswordVerifySocialMedia(email)
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    @Path("/validateKeyAng")
+    fun validateKeyAngular(userAuthKey: UserAuthKey): User? {
+        return userService.validateKeyAngular(userAuthKey)
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    @Path("/updatePasswordForgot")
+    fun updatePasswordForgot(usMon: User) {
+        userService.updatePasswordForgot(usMon)
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    @Path("/newUserSendEmail")
+    fun newUserSendEmailResetPassword(usMon: User): User {
+        userService.newUserSendEmailResetPassword(usMon)
+        return usMon
+    }
+
 }
