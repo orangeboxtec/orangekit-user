@@ -30,10 +30,10 @@ dependencies {
     implementation("io.quarkus:quarkus-arc")
     implementation("org.mongodb:bson:4.9.1")
 
-    implementation("com.orangebox.kit.core:orangekit-core:1.0.18")
+    implementation("com.orangebox.kit.core:orangekit-core:1.0.22")
     implementation("com.orangebox.kit.authkey:orangekit-authkey:1.0.1")
-    implementation("com.orangebox.kit.notification:orangekit-notification:1.0.5")
-    implementation("com.orangebox.kit.admin:orangekit-admin:1.0.47")
+    implementation("com.orangebox.kit.notification:orangekit-notification:1.0.6")
+    implementation("com.orangebox.kit.admin:orangekit-admin:1.0.49")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
