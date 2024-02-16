@@ -1,9 +1,9 @@
 package com.orangebox.kit.user.preference
 
 import com.orangebox.kit.user.util.UserBaseRestService
-import javax.inject.Inject
-import javax.ws.rs.*
-import javax.ws.rs.core.MediaType
+import jakarta.inject.Inject
+import jakarta.ws.rs.*
+import jakarta.ws.rs.core.MediaType
 
 @Path("/userPreference")
 class PreferenceRestService : UserBaseRestService() {

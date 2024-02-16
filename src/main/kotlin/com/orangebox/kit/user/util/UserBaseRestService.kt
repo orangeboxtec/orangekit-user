@@ -2,9 +2,9 @@ package com.orangebox.kit.user.util
 
 import com.orangebox.kit.user.User
 import com.orangebox.kit.user.UserService
+import jakarta.inject.Inject
+import jakarta.ws.rs.NotAuthorizedException
 import org.jboss.resteasy.reactive.RestHeader
-import javax.inject.Inject
-import javax.ws.rs.NotAuthorizedException
 
 open class UserBaseRestService {
 

@@ -3,9 +3,9 @@ package com.orangebox.kit.user.preference
 import com.orangebox.kit.admin.userb.UserBService
 import com.orangebox.kit.core.exception.BusinessException
 import com.orangebox.kit.user.UserService
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
 
 @ApplicationScoped
 class UserPreferenceService {

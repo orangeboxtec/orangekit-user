@@ -10,10 +10,11 @@ import com.orangebox.kit.core.file.FileUpload
 import com.orangebox.kit.core.file.GalleryItem
 import com.orangebox.kit.user.util.SecuredUser
 import com.orangebox.kit.user.util.UserBaseRestService
+import jakarta.inject.Inject
+import jakarta.ws.rs.*
+import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.core.Response
 import java.util.*
-import javax.inject.Inject
-import javax.ws.rs.*
-import javax.ws.rs.core.*
 
 @Path("/user")
 class UserRestService : UserBaseRestService() {
