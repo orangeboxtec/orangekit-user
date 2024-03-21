@@ -20,4 +20,5 @@ class UserSearch {
     var phoneNumber: Long? = null
     var creationDate: Date? = null
     var pageItensNumber: Int? = null
+    var admin: Boolean? = null
 }

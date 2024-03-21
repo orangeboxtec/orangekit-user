@@ -998,6 +998,74 @@ class UserService {
         }
     }
 
+    fun searchUser(userSearch: UserSearch):List<User> {
+        val searchBuilder = userDAO.createBuilder()
+
+        if(userSearch.queryString != null){
+            searchBuilder.appendParamQuery("name|lastName|email|cpf", userSearch.queryString!!, OperationEnum.OR_FIELDS_LIKE)
+        }
+        if(userSearch.name != null){
+            searchBuilder.appendParamQuery("name", userSearch.name!!, OperationEnum.LIKE)
+        }
+        if(userSearch.email != null){
+            searchBuilder.appendParamQuery("email", userSearch.email!!, OperationEnum.LIKE)
+        }
+        if(userSearch.cpf != null){
+            searchBuilder.appendParamQuery("cpf", userSearch.cpf!!)
+        }
+        if(userSearch.document != null){
+            searchBuilder.appendParamQuery("document", userSearch.document!!)
+        }
+        if(userSearch.phoneNumber != null){
+            searchBuilder.appendParamQuery("phone", userSearch.phoneNumber!!)
+        }
+        if(userSearch.type != null){
+            searchBuilder.appendParamQuery("type", userSearch.type!!)
+        }
+        if(userSearch.admin != null){
+            searchBuilder.appendParamQuery("admin ", userSearch.admin!!)
+        }
+        if(userSearch.status != null){
+            searchBuilder.appendParamQuery("status", userSearch.status!!)
+        }
+
+        val userList = userDAO.search(searchBuilder.build())
+
+        val returnList = ArrayList<User>()
+
+        userList?.forEach {
+            val user = User()
+            user.id = it.id
+            user.name = it.name
+            user.email = it.email
+            if (it.cpf != null) {
+                user.cpf = it.cpf
+            }
+            if (it.document != null) {
+                user.document = it.document
+            }
+            if (it.birthDate != null) {
+                user.birthDate = it.birthDate
+            }
+            if (it.phone != null) {
+                user.phone = it.phone
+            }
+            if (it.phoneNumber != null) {
+                user.phoneNumber = it.phoneNumber
+            }
+            if (it.lastAddress != null) {
+                user.lastAddress = it.lastAddress
+            }
+            if (it.info != null) {
+                user.info = it.info
+            }
+
+            returnList.add(user)
+        }
+
+        return returnList
+    }
+
 
     companion object {
         private const val TOTAL_PAGE = 10

@@ -376,4 +376,13 @@ class UserRestService : UserBaseRestService() {
         return usMon
     }
 
+    @SecuredUser
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    @Path("/searchUser")
+    fun searchUser(userSearch: UserSearch): List<User> {
+        return userService.searchUser(userSearch)
+    }
+
 }

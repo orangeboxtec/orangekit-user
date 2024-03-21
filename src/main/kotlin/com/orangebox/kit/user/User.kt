@@ -52,6 +52,7 @@ class User : GeneralUser {
     var gallery: ArrayList<GalleryItem>? = null
     override var urlImage: String? = null
     var userTokens: ArrayList<UserToken>? = null
+    var admin: Boolean? = null
 
     constructor()
     constructor(id: String?) {
