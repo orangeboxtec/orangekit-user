@@ -61,6 +61,8 @@ class UserService {
     @ConfigProperty(name = "orangekit.user.email.forgotPasswordTemplateId.templateid", defaultValue = "ERROR")
     private lateinit var forgotPasswordTemplateId: String
 
+    private val QUANTITY_PAGE = 12
+
     init {
         projectUrl = System.getenv("orangekit.core.projecturl") ?: "http://localhost:3000"
         projectLogo = System.getenv("orangekit.core.projectlogo")
@@ -998,7 +1000,7 @@ class UserService {
         }
     }
 
-    fun searchUser(userSearch: UserSearch):List<User> {
+    fun searchUser(userSearch: UserSearch):ResponseList<User> {
         val searchBuilder = userDAO.createBuilder()
 
         if(userSearch.queryString != null){
@@ -1029,11 +1031,18 @@ class UserService {
             searchBuilder.appendParamQuery("status", userSearch.status!!)
         }
 
-        val userList = userDAO.search(searchBuilder.build())
+        if(userSearch.page == null){
+            userSearch.page = 1
+        }
 
-        val returnList = ArrayList<User>()
+        searchBuilder.setFirst(QUANTITY_PAGE * (userSearch.page!! - 1))
+        searchBuilder.setMaxResults(QUANTITY_PAGE)
 
-        userList?.forEach {
+        val userList = userDAO.searchToResponse(searchBuilder.build())
+
+        val newUserList = ArrayList<User>()
+
+        userList?.list?.forEach {
             val user = User()
             user.id = it.id
             user.name = it.name
@@ -1060,10 +1069,14 @@ class UserService {
                 user.info = it.info
             }
 
-            returnList.add(user)
+            newUserList.add(user)
         }
 
-        return returnList
+        return ResponseList<User>().apply {
+            list = newUserList
+            totalAmount = userList?.totalAmount
+            pageQuantity = userList?.pageQuantity
+        }
     }
 
 

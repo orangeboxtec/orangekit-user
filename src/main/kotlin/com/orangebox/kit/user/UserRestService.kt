@@ -381,7 +381,7 @@ class UserRestService : UserBaseRestService() {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
     @Path("/searchUser")
-    fun searchUser(userSearch: UserSearch): List<User> {
+    fun searchUser(userSearch: UserSearch): ResponseList<User> {
         return userService.searchUser(userSearch)
     }
 
