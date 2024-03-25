@@ -34,6 +34,7 @@ class User : GeneralUser {
     var lastLogin: Date? = null
     var password: String? = null
     var oldPassword: String? = null
+    var tempPassword: String? = null
     var salt: String? = null
     @JsonbDateFormat("yyyy-MM-dd")
     var birthDate: LocalDate? = null
