@@ -1068,6 +1068,9 @@ class UserService {
             if (it.info != null) {
                 user.info = it.info
             }
+            if (it.status != null) {
+                user.status = it.status
+            }
 
             newUserList.add(user)
         }
