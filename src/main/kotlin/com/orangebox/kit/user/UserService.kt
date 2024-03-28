@@ -349,6 +349,7 @@ class UserService {
             userBase = userDAO.retrieve(user.id!!)
         }
         if (userBase != null) {
+            if(userBase.tempPassword != null){userBase.tempPassword = null}
             userBase.salt = SecUtils.salt
             userBase.password = SecUtils.generateHash(userBase.salt, user.password!!)
             update(userBase)
