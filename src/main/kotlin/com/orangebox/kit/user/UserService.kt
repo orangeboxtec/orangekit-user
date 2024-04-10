@@ -1083,6 +1083,11 @@ class UserService {
         }
     }
 
+    fun delete(id: String){
+        val user = userDAO.retrieve(id)
+        userDAO.delete(user!!)
+    }
+
 
     companion object {
         private const val TOTAL_PAGE = 10

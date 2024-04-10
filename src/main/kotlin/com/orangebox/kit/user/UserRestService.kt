@@ -385,4 +385,12 @@ class UserRestService : UserBaseRestService() {
         return userService.searchUser(userSearch)
     }
 
+    //@SecuredUser
+    @DELETE
+    @Path("/delete/{id}")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    fun delete(@PathParam("id") id: String) {
+        userService.delete(id)
+    }
+
 }
