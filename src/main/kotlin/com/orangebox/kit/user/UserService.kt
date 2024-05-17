@@ -14,10 +14,13 @@ import com.orangebox.kit.notification.NotificationBuilder
 import com.orangebox.kit.notification.NotificationService
 import com.orangebox.kit.notification.TypeSendingNotificationEnum
 import com.orangebox.kit.notification.email.data.EmailDataTemplate
+import io.smallrye.mutiny.Uni
+import io.smallrye.mutiny.infrastructure.Infrastructure
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.util.*
+import kotlin.collections.ArrayList
 
 @ApplicationScoped
 class UserService {
@@ -243,6 +246,7 @@ class UserService {
             }
             createToken(userDB)
         }
+        loginRegisterAsync(user)
         return user
     }
 
@@ -281,6 +285,7 @@ class UserService {
             throw BusinessException("user_blocked")
         }
         createToken(userDB)
+        loginRegisterAsync(userDB)
         return userDB
     }
 
@@ -311,6 +316,7 @@ class UserService {
             userDB.userTokens = listTokens
             userDAO.update(userDB)
         }
+        loginRegisterAsync(userDB)
         return userDB
     }
 
@@ -1088,6 +1094,26 @@ class UserService {
         userDAO.delete(user!!)
     }
 
+    fun loginRegister(userSelect: User?){
+        val user = userDAO.retrieve(userSelect?.id!!)
+        if(user != null) {
+            if (user.userLoginList == null) {
+                user.userLoginList = ArrayList<UserLogin>()
+                user.userLoginList!!.add(UserLogin().apply {
+                    loginDate = Date()
+                })
+            } else {
+                user.userLoginList!!.add(UserLogin().apply {
+                    loginDate = Date()
+                })
+            }
+            BusinessUtils(userDAO).basicSave(user)
+        }
+    }
+
+    fun loginRegisterAsync(user: User?){
+        Uni.createFrom().item(user).emitOn(Infrastructure.getDefaultWorkerPool()).subscribe().with(this::loginRegister, Throwable::printStackTrace)
+    }
 
     companion object {
         private const val TOTAL_PAGE = 10
