@@ -14,6 +14,8 @@ import com.orangebox.kit.notification.NotificationBuilder
 import com.orangebox.kit.notification.NotificationService
 import com.orangebox.kit.notification.TypeSendingNotificationEnum
 import com.orangebox.kit.notification.email.data.EmailDataTemplate
+import com.orangebox.kit.user.loginregister.LoginRegister
+import com.orangebox.kit.user.loginregister.LoginRegisterService
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.infrastructure.Infrastructure
 import jakarta.enterprise.context.ApplicationScoped
@@ -30,6 +32,9 @@ class UserService {
 
     @Inject
     private lateinit var notificationService: NotificationService
+
+    @Inject
+    private lateinit var loginRegisterService: LoginRegisterService
 
     @Inject
     private lateinit var userDAO: UserDAO
@@ -1097,17 +1102,10 @@ class UserService {
     fun loginRegister(userSelect: User?){
         val user = userDAO.retrieve(userSelect?.id!!)
         if(user != null) {
-            if (user.userLoginList == null) {
-                user.userLoginList = ArrayList<UserLogin>()
-                user.userLoginList!!.add(UserLogin().apply {
-                    loginDate = Date()
-                })
-            } else {
-                user.userLoginList!!.add(UserLogin().apply {
-                    loginDate = Date()
-                })
-            }
-            BusinessUtils(userDAO).basicSave(user)
+            loginRegisterService.save(LoginRegister().apply {
+                userId = user.id
+                loginDate = Date()
+            })
         }
     }
 

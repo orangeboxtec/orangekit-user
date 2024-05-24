@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.orangebox.kit.user"
-version = "2.0.7"
+version = "2.0.9"
 
 repositories {
     mavenCentral()
@@ -31,6 +31,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.quarkus:quarkus-arc")
     implementation("org.mongodb:bson:4.9.1")
+    implementation("io.quarkus:quarkus-mongodb-client")
 
     implementation("com.orangebox.kit.core:orangekit-core:2.0.1")
     implementation("com.orangebox.kit.authkey:orangekit-authkey:2.0.0")

@@ -54,7 +54,6 @@ class User : GeneralUser {
     override var urlImage: String? = null
     var userTokens: ArrayList<UserToken>? = null
     var admin: Boolean? = null
-    var userLoginList: ArrayList<UserLogin>? = null
 
 
     constructor()
