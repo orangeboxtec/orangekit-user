@@ -6,6 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped
 import org.bson.Document
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 @ApplicationScoped
 class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
@@ -13,6 +14,8 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
     private val dayOfWeek = listOf("", "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado")
 
     private val monthStringShort = listOf("", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago","Set", "Out", "Nov", "Dez")
+
+    private val sdf = SimpleDateFormat("dd/MM/yyyy")
 
     override fun getId(bean: LoginRegister): Any? {
         return bean.id
@@ -74,14 +77,11 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
                 sort
             )).into(list)
 
-        list.first()["weekDay"] = dayOfWeek[list.first()["weekDay"].toString().toInt()]
-
         val map = HashMap<String, Any>()
-        map["labels"] = list.map { p-> p["_id"].toString().toInt() - 3}
-        map["series"] = list.map { p-> p["total"] }
-        map["weekDay"] = list.first()["weekDay"].toString()
-        map["date"] = list.first()["date"].toString()
-
+        map["labels"] = list.map { p -> p["_id"].toString().toInt() - 3 }
+        map["series"] = list.map { p -> p["total"] }
+        map["weekDay"] = dayOfWeek[calendarInitial.get(Calendar.DAY_OF_WEEK)]
+        map["date"] = sdf.format(calendarInitial.time)
         return map
     }
 
@@ -177,7 +177,6 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
 
         list.sortBy { it["dateToSort"].toString() }
 
-        val sdf = SimpleDateFormat("dd/MM/yyyy")
 
         val map = HashMap<String, Any>()
         map["labels"] = list.map { p-> p["_id"] }
