@@ -15,7 +15,7 @@ class LoginRegisterRestService {
     private lateinit var loginRegister: LoginRegisterService
 
 
-    @SecuredUser
+//    @SecuredUser
     @GET
     @Path("/loginRegisterDashboard/{userId}/{type}/{page}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")

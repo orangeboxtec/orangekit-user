@@ -8,6 +8,11 @@ import java.util.*
 
 @ApplicationScoped
 class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
+
+    private val dayOfWeek = listOf("", "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado")
+
+    private val monthStringShort = listOf("", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago","Set", "Out", "Nov", "Dez")
+
     override fun getId(bean: LoginRegister): Any? {
         return bean.id
     }
@@ -46,11 +51,16 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
                 .append("count", BasicDBObject("\$toInt", "1"))
                 .append("userId", "\$userId")
                 .append("loginDate", "\$loginDate")
+                .append("weekDay", BasicDBObject("\$dayOfWeek", "\$loginDate"))
+                .append("dateF", BasicDBObject("\$dateToString", BasicDBObject("format", "%d/%m/%Y").append("date", "\$loginDate")))
+
         )
 
         val group = BasicDBObject("\$group",
             BasicDBObject("_id", "\$hour")
-                .append("total", BasicDBObject("\$sum", "\$count"))
+            .append("total", BasicDBObject("\$sum", "\$count"))
+            .append("weekDay", BasicDBObject("\$first", "\$weekDay"))
+            .append("date", BasicDBObject("\$first", "\$dateF"))
         )
 
         val sort = BasicDBObject("\$sort", BasicDBObject("_id", 1))
@@ -63,8 +73,10 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
                 sort
             )).into(list)
 
+        list.first()["weekDay"] = dayOfWeek[list.first()["weekDay"].toString().toInt()]
+
         val map = HashMap<String, Any>()
-        map["labels"] = list.map { p-> p["_id"] }
+        map["labels"] = list.map { p-> p["_id"].toString().toInt() - 3}
         map["series"] = list.map { p-> p["total"] }
 
         return map
@@ -108,11 +120,13 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
             .append("userId", "\$userId")
             .append("loginDate", "\$loginDate")
             .append("dayString", BasicDBObject("\$dateToString", BasicDBObject("format", "%d").append("date", "\$loginDate")))
+            .append("dateToSort", BasicDBObject("\$dateToString", BasicDBObject("format", "%m%d").append("date", "\$loginDate")))
         )
 
         val group = BasicDBObject("\$group", BasicDBObject("_id", "\$day")
             .append("total", BasicDBObject("\$sum", "\$count"))
             .append("dayString", BasicDBObject("\$first", "\$dayString"))
+            .append("dateToSort", BasicDBObject("\$first", "\$dateToSort"))
         )
 
         val sort = BasicDBObject("\$sort", BasicDBObject("_id", 1))
@@ -131,9 +145,22 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
 
             val find = list.find { a -> a["_id"] == day }
             if(find == null){
+                val monthString = if((calendarInitial.get(Calendar.MONTH) + 1) < 10){
+                    "0".plus((calendarInitial.get(Calendar.MONTH) + 1).toString())
+                } else {
+                    "".plus((calendarInitial.get(Calendar.MONTH) + 1).toString())
+                }
+
+                val dayString = if(calendarInitial.get(Calendar.DAY_OF_MONTH) < 10){
+                    "0".plus(calendarInitial.get(Calendar.DAY_OF_MONTH).toString())
+                } else {
+                    "".plus(calendarInitial.get(Calendar.DAY_OF_MONTH).toString())
+                }
+
                 val document = Document()
                 document["_id"] = day
                 document["total"] = 0
+                document["dateToSort"] = monthString + dayString
 
                 list.add(document)
             }
@@ -142,7 +169,7 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
             verification ++
         }
 
-        list.sortBy { it["_id"].toString().toInt() }
+        list.sortBy { it["dateToSort"].toString() }
 
         val map = HashMap<String, Any>()
         map["labels"] = list.map { p-> p["_id"] }
@@ -183,7 +210,8 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
             .append("loginDate", BasicDBObject("\$gte", calendarInitial.time).append("\$lte", calendarFinal.time))
         )
 
-        val project = BasicDBObject("\$project", BasicDBObject("month", BasicDBObject("\$dateToString", BasicDBObject("format", "%m").append("date", "\$loginDate")))
+        val project = BasicDBObject("\$project",
+            BasicDBObject("month", BasicDBObject("\$dateToString", BasicDBObject("format", "%m").append("date", "\$loginDate")))
             .append("count", BasicDBObject("\$toInt", "1"))
             .append("userId", "\$userId")
             .append("loginDate", "\$loginDate")
@@ -223,6 +251,10 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
         }
 
         list.sortBy { it["_id"].toString().toInt() }
+
+        list.forEach {
+            it["_id"] =  monthStringShort[it["_id"].toString().toInt()].plus("/${calendarInitial.get(Calendar.YEAR)}")
+        }
 
         val map = HashMap<String, Any>()
         map["labels"] = list.map { p-> p["_id"] }
