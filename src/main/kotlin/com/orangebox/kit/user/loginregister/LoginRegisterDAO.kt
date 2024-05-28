@@ -4,6 +4,7 @@ import com.mongodb.BasicDBObject
 import com.orangebox.kit.core.dao.AbstractDAO
 import jakarta.enterprise.context.ApplicationScoped
 import org.bson.Document
+import java.text.SimpleDateFormat
 import java.util.*
 
 @ApplicationScoped
@@ -78,6 +79,8 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
         val map = HashMap<String, Any>()
         map["labels"] = list.map { p-> p["_id"].toString().toInt() - 3}
         map["series"] = list.map { p-> p["total"] }
+        map["weekDay"] = list.first()["weekDay"].toString()
+        map["date"] = list.first()["date"].toString()
 
         return map
     }
@@ -169,11 +172,18 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
             verification ++
         }
 
+        calendarInitial.add(Calendar.DAY_OF_MONTH, -7)
+
+
         list.sortBy { it["dateToSort"].toString() }
+
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
 
         val map = HashMap<String, Any>()
         map["labels"] = list.map { p-> p["_id"] }
         map["series"] = list.map { p-> p["total"] }
+        map["initialDate"] = sdf.format(calendarInitial.time)
+        map["finaleDate"] = sdf.format(calendarFinal.time)
 
         return map
     }
@@ -253,12 +263,13 @@ class LoginRegisterDAO: AbstractDAO<LoginRegister>(LoginRegister::class.java) {
         list.sortBy { it["_id"].toString().toInt() }
 
         list.forEach {
-            it["_id"] =  monthStringShort[it["_id"].toString().toInt()].plus("/${calendarInitial.get(Calendar.YEAR)}")
+            it["_id"] =  monthStringShort[it["_id"].toString().toInt()]
         }
 
         val map = HashMap<String, Any>()
         map["labels"] = list.map { p-> p["_id"] }
         map["series"] = list.map { p-> p["total"] }
+        map["year"] = "${calendarInitial.get(Calendar.YEAR)}"
 
         return map
     }
