@@ -108,6 +108,14 @@ class UserRestService : UserBaseRestService() {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    @Path("/loginWithAuthKey")
+    fun login(userAuth: UserAuth): User {
+        return userService.loginWithAuthKey(userAuth)
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
     @Path("/autoLogin")
     fun autoLogin(usMon: User): User? {
         return userService.autoLogin(usMon)

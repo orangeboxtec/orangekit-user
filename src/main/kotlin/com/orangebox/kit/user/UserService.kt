@@ -325,6 +325,34 @@ class UserService {
         return userDB
     }
 
+
+    fun loginWithAuthKey(userAuth: UserAuth): User {
+        return loginWithAuthKey(userAuth.idUser!!, userAuth.authKey!!)
+    }
+    protected fun loginWithAuthKey(idUser:String, authKey: UserAuthKey): User {
+        val userDB = retrieve(idUser) ?: throw BusinessException("invalid_user")
+        if (userDB.status != null && userDB.status == "BLOCKED") {
+            throw BusinessException("user_blocked")
+        }
+        val validateToken = userAuthKeyService.validateKey(authKey)
+        if (!validateToken) {
+            throw BusinessException("invalid_token")
+        } else {
+            createToken(userDB)
+            var listTokens = ArrayList<UserToken>()
+            for (i in userDB.userTokens!!) {
+                var index = userDB.userTokens!!.indexOf(i)
+                if (userDB.userTokens!![index].tokenExpirationDate?.after(Date()) == true) {
+                    listTokens.add(i)
+                }
+            }
+            userDB.userTokens = listTokens
+            userDAO.update(userDB)
+        }
+        loginRegisterAsync(userDB)
+        return userDB
+    }
+
     fun logout(idUser: String) {
         val user = retrieve(idUser)
         if (user != null) {
