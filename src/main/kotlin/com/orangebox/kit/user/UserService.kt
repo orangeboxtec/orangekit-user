@@ -290,7 +290,9 @@ class UserService {
             throw BusinessException("user_blocked")
         }
         createToken(userDB)
-        loginRegisterAsync(userDB)
+        if(user.registerLoginFg == null || user.registerLoginFg == true) {
+            loginRegisterAsync(userDB)
+        }
         return userDB
     }
 
