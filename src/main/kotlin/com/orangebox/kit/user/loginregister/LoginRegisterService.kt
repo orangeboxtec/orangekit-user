@@ -33,5 +33,26 @@ class LoginRegisterService {
             }
         }
     }
-    fun test(){ }
+
+    fun loginRegisterDashboardUsers(usersId: ArrayList<String>?, type: String, page: Int?): Map<String, *>? {
+        return when (type) {
+            "diario" -> {
+                loginRegisterDAO.loginsRegisterDaily(usersId, page)
+            }
+
+            "semanal" -> {
+                loginRegisterDAO.loginsRegisterWeekly(usersId, page)
+            }
+
+            "mensal" -> {
+                loginRegisterDAO.loginsRegisterMonthly(usersId, page)
+            }
+
+            else -> {
+                null
+            }
+        }
+    }
+
+            fun test(){ }
 }
