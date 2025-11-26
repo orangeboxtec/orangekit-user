@@ -251,7 +251,9 @@ class UserService {
             }
             createToken(userDB)
         }
-        loginRegisterAsync(user)
+        if(userLogin.registerLoginFg == null || userLogin.registerLoginFg == true) {
+            loginRegisterAsync(userLogin)
+        }
         return user
     }
 
@@ -1130,7 +1132,7 @@ class UserService {
     }
 
     fun loginRegister(userSelect: User?){
-        val user = userDAO.retrieve(userSelect?.id!!)
+        val user = userDAO.retrieve(userSelect?.id!!)?: userDAO.retrieveByIdGoogle(userSelect.idGoogle!!)
         if(user != null) {
             loginRegisterService.save(LoginRegister().apply {
                 userId = user.id

@@ -27,7 +27,7 @@ class LoginRegisterRestService {
     @GET
     @Path("/loginRegisterDashboard")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    fun loginRegisterDashboardUsers(@QueryParam("usersId") usersId: ArrayList<String>?,
+    fun loginRegisterDashboardUsers(@QueryParam("usersId") usersId: List<String>?,
                                     @QueryParam("type") type: String,
                                     @QueryParam("page") page: Int?): Map<String, *>? {
         return loginRegister.loginRegisterDashboardUsers(usersId, type, page)

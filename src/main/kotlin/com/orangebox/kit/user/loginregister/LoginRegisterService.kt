@@ -34,7 +34,7 @@ class LoginRegisterService {
         }
     }
 
-    fun loginRegisterDashboardUsers(usersId: ArrayList<String>?, type: String, page: Int?): Map<String, *>? {
+    fun loginRegisterDashboardUsers(usersId: List<String>?, type: String, page: Int?): Map<String, *>? {
         return when (type) {
             "diario" -> {
                 loginRegisterDAO.loginsRegisterDaily(usersId, page)
