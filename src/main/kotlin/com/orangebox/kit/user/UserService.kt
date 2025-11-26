@@ -1132,7 +1132,8 @@ class UserService {
     }
 
     fun loginRegister(userSelect: User?){
-        val user = userDAO.retrieve(userSelect?.id!!)?: userDAO.retrieveByIdGoogle(userSelect.idGoogle!!)
+        var user = if (userSelect?.id != null) userDAO.retrieve(userSelect.id!!) else null
+        user = if(user == null && userSelect?.idGoogle != null) userDAO.retrieveByIdGoogle(userSelect.idGoogle!!) else user
         if(user != null) {
             loginRegisterService.save(LoginRegister().apply {
                 userId = user.id
