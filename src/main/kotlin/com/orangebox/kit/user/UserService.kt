@@ -614,7 +614,7 @@ class UserService {
     fun retrieveByToken(token: String): User? {
         return userDAO.retrieve(
                 userDAO.createBuilder()
-                        .appendParamQuery("userTokens.token", token)
+                        .appendParamQuery("userTokens.token|token", token, OperationEnum.OR_FIELDS)
                         .build()
         )
     }
